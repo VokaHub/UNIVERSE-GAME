@@ -1,6 +1,6 @@
 /**
  * @file missionConfig.ts
- * @description Configuración narrativa, parámetros de simulación y diálogos del videojuego educativo OUTPOST.
+ * @description OUTPOST: Simulación interactiva de estación científica lunar desarrollada por el equipo UNIVERSE para NASA Space Apps Challenge.
  * 
  * NOTA TÉCNICA Y CIENTÍFICA:
  * Los valores de recursos (energía, oxígeno y agua) y temperatura aquí expuestos
@@ -26,14 +26,14 @@ export interface BaseModule {
 
 export const WELCOME_CONFIG = {
   teamName: 'UNIVERSE',
-  gameTitle: 'UNIVERSE',
+  gameTitle: 'OUTPOST',
   subtitle: 'EVERY CHOICE HAS A COST',
   missionTagline: '48 horas para mantener viva tu misión',
   ctaButton: 'EMPEZAR A JUGAR',
 };
 
 export const MISSION_METADATA = {
-  name: 'UNIVERSE',
+  name: 'OUTPOST',
   team: 'UNIVERSE',
   location: 'POLO SUR LUNAR',
   sublocation: 'Cráter Shackleton (89.9° S, 0.0° E)',

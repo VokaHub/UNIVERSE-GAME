@@ -1,6 +1,6 @@
 /**
  * @file App.tsx
- * @description Maqueta interactiva del videojuego educativo de simulación espacial UNIVERSE.
+ * @description OUTPOST: Simulación interactiva de base científica lunar desarrollada por el equipo UNIVERSE para NASA Space Apps Challenge.
  * Manejo de pantalla de bienvenida 3D, mapa base lunar, invernadero, diálogos del oficial y recursos.
  */
 
