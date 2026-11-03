@@ -87,18 +87,18 @@ export const INCIDENT_CONFIG = {
   emergencyCoolingDurationMs: 2400,   // Duración de la animación de enfriamiento progresivo
   delayBeforeIncidentTriggerMs: 1500, // Retardo al arrancar antes de que el oficial informe
   
-  // Textos y diálogos del segundo al mando
+  // Textos y diálogos simplificados del segundo al mando (máximo 2 frases directas y naturales)
   dialogues: {
     // Alarma inicial en la pantalla principal
-    alert: 'Comandante, tenemos una incidencia en el módulo de producción de alimentos. La temperatura del invernadero está aumentando por encima del rango operativo. El sistema principal de refrigeración ha fallado y la temperatura ha alcanzado los 34 °C. Si no intervenimos, podríamos comprometer nuestros cultivos.',
+    alert: '¡Comandante, el invernadero se está sobrecalentando! Tenemos que activar la refrigeración de emergencia.',
     // Instrucción para proceder
-    guidance: 'Necesitamos revisar el sistema de climatización y activar la refrigeración de emergencia antes de que los cultivos resulten dañados. Puede consultar el panel de control o dirigirse directamente al invernadero.',
+    guidance: 'Revise el panel de control o entre directamente al módulo para intervenir.',
     // Dentro del invernadero
-    greenhouseBriefing: 'Comandante, detectamos que el compresor de refrigeración principal ha quedado inoperativo por sobrecalentamiento. El sistema de refrigeración de emergencia está listo en reserva. Al activarlo consumiremos más potencia de la red de la base, pero estabilizaremos la temperatura en minutos.',
+    greenhouseBriefing: 'El compresor principal falló y alcanzamos los 34 °C. ¡Active el sistema de emergencia para salvar los cultivos!',
     // Tras activar la refrigeración de emergencia
-    stabilized: 'Excelente, comandante. La temperatura se ha estabilizado en 25 °C y los cultivos hidropónicos están fuera de peligro inmediato. Tenga en cuenta que el sistema de emergencia consume energía adicional, por lo que la reserva energética de la base ha descendido al 73 %.',
+    stabilized: '¡Temperatura estabilizada a 25 °C! La refrigeración extra consumió energía y la reserva bajó al 73%.',
     // Al regresar a la base panorámica
-    incidentResolvedBase: 'Incidente resuelto, comandante. La base continúa operativa. Seguimos con la misión de 48 horas.',
+    incidentResolvedBase: '¡Incidente resuelto, comandante! Todos los sistemas de la base vuelven a estar operativos.',
   },
 };
 

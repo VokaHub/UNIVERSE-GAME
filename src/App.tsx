@@ -72,13 +72,11 @@ export default function App() {
     setSimTime('00:15 / 48:00');
     sfx.alert();
 
-    setOfficerBadge('ALERTA DE PRIORIDAD');
-    setOfficerMessage(
-      `${INCIDENT_CONFIG.dialogues.alert} ${INCIDENT_CONFIG.dialogues.guidance}`
-    );
+    setOfficerBadge('EMERGENCIA');
+    setOfficerMessage(INCIDENT_CONFIG.dialogues.alert);
     setDialogueActions([
       {
-        label: 'ABRIR PANEL DE CONTROL',
+        label: 'PANEL DE CONTROL',
         onClick: () => {
           setIsOfficerOpen(false);
           setIsControlPanelOpen(true);
@@ -106,11 +104,11 @@ export default function App() {
     // Diálogo del oficial al llegar al invernadero
     if (!isResolved) {
       setTimeout(() => {
-        setOfficerBadge('INSPECCIÓN EN SITIO');
+        setOfficerBadge('INVERNADERO');
         setOfficerMessage(INCIDENT_CONFIG.dialogues.greenhouseBriefing);
         setDialogueActions([
           {
-            label: 'ACTIVAR REFRIGERACIÓN DE EMERGENCIA',
+            label: 'ACTIVAR REFRIGERACIÓN',
             primary: true,
             onClick: () => {
               handleActivateEmergencyCooling();
@@ -118,7 +116,7 @@ export default function App() {
           },
         ]);
         setIsOfficerOpen(true);
-      }, 500);
+      }, 400);
     } else {
       setIsOfficerOpen(false);
     }
@@ -133,23 +131,23 @@ export default function App() {
 
     if (isResolved) {
       setTimeout(() => {
-        setOfficerBadge('INFORME DE MISIÓN');
+        setOfficerBadge('MISIÓN');
         setOfficerMessage(INCIDENT_CONFIG.dialogues.incidentResolvedBase);
         setDialogueActions([
           {
-            label: 'CONSULTAR PANEL DE CONTROL',
+            label: 'VER PANEL',
             onClick: () => {
               setIsOfficerOpen(false);
               setIsControlPanelOpen(true);
             },
           },
           {
-            label: 'CONTINUAR VIGILANCIA',
+            label: 'CONTINUAR',
             onClick: () => setIsOfficerOpen(false),
           },
         ]);
         setIsOfficerOpen(true);
-      }, 400);
+      }, 350);
     }
   };
 
@@ -192,9 +190,9 @@ export default function App() {
         setSimTime('01:20 / 48:00');
         sfx.success();
 
-        // Diálogo de confirmación del oficial
+        // Diálogo de confirmación del oficial (máximo 2 frases)
         setTimeout(() => {
-          setOfficerBadge('SISTEMA RESTABLECIDO');
+          setOfficerBadge('ESTABILIZADO');
           setOfficerMessage(INCIDENT_CONFIG.dialogues.stabilized);
           setDialogueActions([
             {
@@ -207,7 +205,7 @@ export default function App() {
             },
           ]);
           setIsOfficerOpen(true);
-        }, 500);
+        }, 400);
       }
     }, stepDuration);
   };

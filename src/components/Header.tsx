@@ -1,5 +1,5 @@
 import React from 'react';
-import { Volume2, VolumeX, RotateCcw, Sliders, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { Volume2, VolumeX, RotateCcw, Sliders, AlertCircle, CheckCircle } from 'lucide-react';
 import { MISSION_METADATA } from '../data/missionConfig';
 import { sfx } from '../utils/audio';
 
@@ -23,98 +23,82 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleMute,
 }) => {
   return (
-    <header className="relative z-30 flex items-center justify-between px-4 py-2.5 sm:px-6 sm:py-3 bg-slate-950/85 backdrop-blur-md border-b border-slate-800/80 text-slate-100 shadow-xl">
-      {/* Zona 1: Identificador de Misión y Rol */}
-      <div className="flex items-center gap-3 sm:gap-5">
-        <div className="flex items-baseline gap-2">
-          <span className="text-lg sm:text-xl font-extrabold tracking-wider text-cyan-400 font-mono">
+    <header className="relative z-30 flex items-center justify-between px-3 py-2 sm:px-6 sm:py-2.5 bg-slate-950/75 backdrop-blur-md border-b border-white/10 text-white select-none">
+      {/* Título del juego & Tag */}
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <span className="text-base sm:text-lg font-black tracking-wider text-cyan-400 font-mono">
             {MISSION_METADATA.name}
           </span>
-          <span className="text-xs text-slate-400 hidden md:inline font-mono">
-            // {MISSION_METADATA.location}
+          <span className="text-[11px] font-mono font-medium text-slate-400 hidden sm:inline">
+            POLO SUR LUNAR · 48H
           </span>
-        </div>
-
-        <div className="hidden lg:flex items-center gap-2 text-xs text-slate-400 font-mono border-l border-slate-800 pl-4">
-          <span className="text-slate-200">{MISSION_METADATA.commanderRole}</span>
-          <span aria-hidden="true" className="text-slate-600">·</span>
-          <span>MISIÓN: {MISSION_METADATA.totalHours} HORAS</span>
         </div>
       </div>
 
-      {/* Zona 2: Reloj de Simulación y Estado */}
-      <div className="flex items-center gap-3 sm:gap-6">
-        <div className="flex items-center gap-2 bg-slate-900/90 border border-slate-700/60 rounded px-2.5 py-1">
-          <span className="text-[10px] tracking-wider text-slate-400 uppercase font-mono hidden sm:inline">
-            T-SIM
-          </span>
-          <span className="text-xs sm:text-sm font-mono font-bold text-cyan-300 tabular-nums">
-            {simTime}
-          </span>
+      {/* Reloj y Estado compacto */}
+      <div className="flex items-center gap-3">
+        <div className="bg-slate-900/90 border border-white/10 rounded-lg px-2.5 py-1 flex items-center gap-1.5 font-mono text-xs">
+          <span className="text-slate-400 text-[10px] hidden sm:inline">TIEMPO:</span>
+          <span className="font-bold text-cyan-300 tabular-nums">{simTime}</span>
         </div>
 
-        {/* Indicador de Estado General */}
-        <div className="hidden sm:flex items-center gap-2 text-xs font-mono">
-          {hasIncident && !isResolved ? (
-            <div className="flex items-center gap-1.5 text-rose-400 bg-rose-950/60 border border-rose-800/60 px-2.5 py-1 rounded">
-              <ShieldAlert className="w-3.5 h-3.5 animate-pulse" />
-              <span className="font-semibold">ALERTA EN INVERNADERO</span>
-            </div>
-          ) : isResolved ? (
-            <div className="flex items-center gap-1.5 text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-2.5 py-1 rounded">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>SISTEMAS OPERATIVOS</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-1.5 text-slate-300 bg-slate-900/60 border border-slate-800 px-2.5 py-1 rounded">
-              <span>SISTEMAS NOMINALES</span>
-            </div>
-          )}
-        </div>
+        {/* Indicador de estado */}
+        {hasIncident && !isResolved ? (
+          <div className="flex items-center gap-1.5 bg-rose-950/90 border border-rose-500/60 text-rose-300 text-xs font-mono font-bold px-2.5 py-1 rounded-lg animate-pulse">
+            <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+            <span>ALERTA</span>
+          </div>
+        ) : isResolved ? (
+          <div className="flex items-center gap-1.5 bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 text-xs font-mono font-bold px-2.5 py-1 rounded-lg">
+            <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
+            <span>TODO OK</span>
+          </div>
+        ) : (
+          <div className="hidden sm:flex items-center gap-1.5 bg-slate-900/60 border border-white/10 text-slate-300 text-xs font-mono px-2 py-1 rounded-lg">
+            <span>NORMAL</span>
+          </div>
+        )}
       </div>
 
-      {/* Zona 3: Acciones Primarias */}
-      <div className="flex items-center gap-2 sm:gap-3">
-        {/* Toggle de Audio */}
+      {/* Controles: Audio, Reset y Panel */}
+      <div className="flex items-center gap-2">
         <button
           onClick={() => {
             onToggleMute();
             sfx.click();
           }}
-          title={isMuted ? 'Activar sonido FX' : 'Silenciar sonido FX'}
-          aria-label={isMuted ? 'Activar sonido FX' : 'Silenciar sonido FX'}
-          className="p-1.5 sm:p-2 text-slate-400 hover:text-cyan-300 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 rounded transition-colors"
+          title={isMuted ? 'Activar sonido' : 'Silenciar sonido'}
+          className="p-1.5 rounded-lg bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-white/10 transition-colors"
         >
           {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
         </button>
 
-        {/* Botón de Reinicio de Demostración */}
         <button
           onClick={() => {
             sfx.click();
             onResetDemo();
           }}
-          title="Reiniciar la demostración del incidente"
-          className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-slate-300 hover:text-white bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 rounded transition-colors"
+          title="Reiniciar simulación"
+          className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-white/10 text-xs font-medium transition-colors flex items-center gap-1"
         >
-          <RotateCcw className="w-3.5 h-3.5 text-slate-400" />
+          <RotateCcw className="w-4 h-4" />
           <span className="hidden sm:inline">Reiniciar</span>
         </button>
 
-        {/* Botón Principal: Panel de Control */}
         <button
           onClick={() => {
             sfx.click();
             onOpenControlPanel();
           }}
-          className={`flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold rounded transition-all shadow-md active:scale-95 ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all shadow active:scale-95 ${
             hasIncident && !isResolved
-              ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-900/40 ring-2 ring-rose-500/50 animate-pulse'
-              : 'bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold shadow-cyan-900/30'
+              ? 'bg-rose-600 hover:bg-rose-500 text-white animate-pulse'
+              : 'bg-cyan-500 hover:bg-cyan-400 text-slate-950'
           }`}
         >
           <Sliders className="w-4 h-4" />
-          <span className="tracking-wide">PANEL DE CONTROL</span>
+          <span>PANEL</span>
         </button>
       </div>
     </header>
