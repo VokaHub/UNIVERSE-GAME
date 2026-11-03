@@ -30,7 +30,7 @@ export const BaseMap: React.FC<BaseMapProps> = ({
       <div className="absolute inset-0 z-0">
         <img
           src={ASSET_IMAGES.lunarBase}
-          alt="Base Lunar OUTPOST"
+          alt="Base Lunar UNIVERSE"
           referrerPolicy="no-referrer"
           className="w-full h-full object-cover object-center pointer-events-none"
         />

@@ -1,11 +1,12 @@
 /**
  * @file App.tsx
- * @description Maqueta interactiva del videojuego de simulación espacial OUTPOST.
- * Control de estados, narrativa, panel de control y escenarios (Base Lunar / Invernadero).
+ * @description Maqueta interactiva del videojuego educativo de simulación espacial UNIVERSE.
+ * Manejo de pantalla de bienvenida 3D, mapa base lunar, invernadero, diálogos del oficial y recursos.
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { AnimatePresence } from 'motion/react';
+import { WelcomeScreen } from './components/WelcomeScreen';
 import { Header } from './components/Header';
 import { BaseMap } from './components/BaseMap';
 import { GreenhouseScene } from './components/GreenhouseScene';
@@ -20,11 +21,11 @@ import {
 } from './data/missionConfig';
 import { sfx } from './utils/audio';
 
-type ActiveScene = 'BASE' | 'GREENHOUSE';
+type ActiveScene = 'WELCOME' | 'BASE' | 'GREENHOUSE';
 
 export default function App() {
-  // Estado de escena activa
-  const [currentScene, setCurrentScene] = useState<ActiveScene>('BASE');
+  // Escena activa: inicia en WELCOME como especifica la solicitud
+  const [currentScene, setCurrentScene] = useState<ActiveScene>('WELCOME');
 
   // Estado del incidente y resolución
   const [hasIncident, setHasIncident] = useState<boolean>(false);
@@ -32,10 +33,10 @@ export default function App() {
   const [isCoolingActive, setIsCoolingActive] = useState<boolean>(false);
   const [currentTemp, setCurrentTemp] = useState<number>(INCIDENT_CONFIG.initialTemp);
 
-  // Recursos de la base (Valores ficticios para maqueta)
+  // Únicamente tres recursos principales (Energía, Oxígeno, Agua)
   const [resources, setResources] = useState<ResourceState>(INITIAL_RESOURCES);
 
-  // Tiempo simulado
+  // Reloj de tiempo simulado
   const [simTime, setSimTime] = useState<string>(MISSION_METADATA.initialSimTime);
 
   // Panel de control desplegable
@@ -44,28 +45,34 @@ export default function App() {
   // Diálogo del Oficial
   const [isOfficerOpen, setIsOfficerOpen] = useState<boolean>(false);
   const [officerMessage, setOfficerMessage] = useState<string>('');
-  const [officerBadge, setOfficerBadge] = useState<string>('COMUNICACIÓN ENTRANTE');
+  const [officerBadge, setOfficerBadge] = useState<string>('SEGUNDO AL MANDO');
   const [dialogueActions, setDialogueActions] = useState<DialogueAction[]>([]);
 
-  // Silenciar sonido
+  // Toggle de sonido
   const [isMuted, setIsMuted] = useState<boolean>(false);
 
-  // Referencia para temporizadores
+  // Temporizadores
   const coolingIntervalRef = useRef<number | null>(null);
+  const incidentTimerRef = useRef<number | null>(null);
 
   /**
-   * Ciclo inicial: Desatar el incidente tras unos segundos como solicita el briefing
+   * 1. Al pulsar EMPEZAR A JUGAR en la pantalla de bienvenida
    */
-  useEffect(() => {
-    const timer = setTimeout(() => {
+  const handleStartGame = () => {
+    setCurrentScene('BASE');
+    setSimTime(MISSION_METADATA.initialSimTime);
+
+    // Tras unos instantes, el segundo al mando comunica la emergencia térmica
+    if (incidentTimerRef.current) {
+      window.clearTimeout(incidentTimerRef.current);
+    }
+    incidentTimerRef.current = window.setTimeout(() => {
       triggerIncident();
     }, INCIDENT_CONFIG.delayBeforeIncidentTriggerMs);
-
-    return () => clearTimeout(timer);
-  }, []);
+  };
 
   /**
-   * Dispara el incidente inicial
+   * 2. Detonación de la emergencia térmica en el invernadero
    */
   const triggerIncident = () => {
     setHasIncident(true);
@@ -94,14 +101,13 @@ export default function App() {
   };
 
   /**
-   * Navega hacia el escenario del Invernadero
+   * 3. Navegar hacia el interior del Invernadero
    */
   const navigateToGreenhouse = () => {
     setIsControlPanelOpen(false);
     setCurrentScene('GREENHOUSE');
     sfx.transition();
 
-    // Diálogo del oficial al llegar al invernadero
     if (!isResolved) {
       setTimeout(() => {
         setOfficerBadge('INVERNADERO');
@@ -123,7 +129,7 @@ export default function App() {
   };
 
   /**
-   * Regresa al mapa panorámico de la base
+   * 4. Regresar a la pantalla panorámica de la base lunar
    */
   const navigateToBase = () => {
     setCurrentScene('BASE');
@@ -152,11 +158,12 @@ export default function App() {
   };
 
   /**
-   * Acción: Activar refrigeración de emergencia
-   * - Desciende la temperatura de 34 °C a 25 °C
-   * - Cambia el estado del invernadero a OPERATIVO
-   * - Reduce la energía de la base de 78% a 73%
-   * - Oficial comunica resolución
+   * 5. Activar refrigeración de emergencia:
+   * - Temperatura desciende de 34 °C a 25 °C
+   * - El invernadero cambia a OPERATIVO
+   * - Energía disminuye de 78 % a 73 % (-5 %)
+   * - Agua disminuye de 85 % a 82 % (-3 %)
+   * - Oxígeno permanece en 96 %
    */
   const handleActivateEmergencyCooling = () => {
     if (isResolved || isCoolingActive) return;
@@ -164,18 +171,38 @@ export default function App() {
     setIsCoolingActive(true);
     setIsOfficerOpen(false);
 
-    // Animación de descenso progresivo de temperatura (34 -> 25)
     let temp = INCIDENT_CONFIG.initialTemp;
     const target = INCIDENT_CONFIG.targetTemp;
-    const stepDuration = INCIDENT_CONFIG.emergencyCoolingDurationMs / (temp - target);
+    const totalSteps = temp - target;
+    const stepDuration = INCIDENT_CONFIG.emergencyCoolingDurationMs / totalSteps;
+
+    // Recursos iniciales para interpolación
+    const startEnergy = INITIAL_RESOURCES.energy;
+    const endEnergy = RESOLVED_RESOURCES.energy;
+    const startWater = INITIAL_RESOURCES.water;
+    const endWater = RESOLVED_RESOURCES.water;
 
     if (coolingIntervalRef.current) {
       window.clearInterval(coolingIntervalRef.current);
     }
 
+    let currentStep = 0;
+
     coolingIntervalRef.current = window.setInterval(() => {
+      currentStep += 1;
       temp -= 1;
       setCurrentTemp(temp);
+
+      // Actualizar progresivamente los recursos en pantalla
+      const progress = currentStep / totalSteps;
+      const interpolatedEnergy = Math.round(startEnergy - (startEnergy - endEnergy) * progress);
+      const interpolatedWater = Math.round(startWater - (startWater - endWater) * progress);
+
+      setResources({
+        energy: interpolatedEnergy,
+        oxygen: 96,
+        water: interpolatedWater,
+      });
 
       if (temp <= target) {
         if (coolingIntervalRef.current) {
@@ -183,14 +210,14 @@ export default function App() {
           coolingIntervalRef.current = null;
         }
 
-        // Consecuencias completadas
+        // Resolución completada
         setIsCoolingActive(false);
         setIsResolved(true);
         setResources(RESOLVED_RESOURCES);
         setSimTime('01:20 / 48:00');
         sfx.success();
 
-        // Diálogo de confirmación del oficial (máximo 2 frases)
+        // Diálogo de confirmación del oficial (máximo dos frases)
         setTimeout(() => {
           setOfficerBadge('ESTABILIZADO');
           setOfficerMessage(INCIDENT_CONFIG.dialogues.stabilized);
@@ -211,15 +238,19 @@ export default function App() {
   };
 
   /**
-   * Reiniciar la demostración para permitir repetir la experiencia
+   * 6. Reiniciar toda la demostración y regresar a la pantalla de bienvenida
    */
-  const handleResetDemo = () => {
+  const handleResetToWelcome = () => {
     if (coolingIntervalRef.current) {
       window.clearInterval(coolingIntervalRef.current);
       coolingIntervalRef.current = null;
     }
+    if (incidentTimerRef.current) {
+      window.clearTimeout(incidentTimerRef.current);
+      incidentTimerRef.current = null;
+    }
 
-    setCurrentScene('BASE');
+    setCurrentScene('WELCOME');
     setHasIncident(false);
     setIsResolved(false);
     setIsCoolingActive(false);
@@ -228,16 +259,8 @@ export default function App() {
     setSimTime(MISSION_METADATA.initialSimTime);
     setIsControlPanelOpen(false);
     setIsOfficerOpen(false);
-
-    // Volver a detonar tras unos segundos
-    setTimeout(() => {
-      triggerIncident();
-    }, 1200);
   };
 
-  /**
-   * Conmutar sonido FX
-   */
   const handleToggleMute = () => {
     const muted = sfx.toggleMute();
     setIsMuted(muted);
@@ -245,58 +268,68 @@ export default function App() {
 
   return (
     <div className="relative w-screen h-screen overflow-hidden flex flex-col bg-slate-950 text-slate-100 font-sans">
-      {/* 1. Encabezado de Navegación y Telemetría */}
-      <Header
-        simTime={simTime}
-        hasIncident={hasIncident}
-        isResolved={isResolved}
-        onOpenControlPanel={() => setIsControlPanelOpen(true)}
-        onResetDemo={handleResetDemo}
-        isMuted={isMuted}
-        onToggleMute={handleToggleMute}
-      />
-
-      {/* 2. Escenario Activo: Base Lunar o Interior de Invernadero */}
-      <main className="relative flex-1 w-full overflow-hidden">
-        <AnimatePresence mode="wait">
-          {currentScene === 'BASE' ? (
-            <BaseMap
-              key="base"
+      <AnimatePresence mode="wait">
+        {currentScene === 'WELCOME' ? (
+          /* Pantalla de Bienvenida Independiente con Luna 3D */
+          <WelcomeScreen key="welcome" onStartGame={handleStartGame} />
+        ) : (
+          <div key="game" className="relative w-full h-full flex flex-col">
+            {/* Cabecera del Juego */}
+            <Header
+              simTime={simTime}
               hasIncident={hasIncident}
               isResolved={isResolved}
-              onSelectGreenhouse={navigateToGreenhouse}
               onOpenControlPanel={() => setIsControlPanelOpen(true)}
+              onResetToWelcome={handleResetToWelcome}
+              isMuted={isMuted}
+              onToggleMute={handleToggleMute}
             />
-          ) : (
-            <GreenhouseScene
-              key="greenhouse"
-              isResolved={isResolved}
-              onActivateEmergencyCooling={handleActivateEmergencyCooling}
-              onReturnToBase={navigateToBase}
-              isCoolingActive={isCoolingActive}
-              currentTemp={currentTemp}
+
+            {/* Escenario Activo */}
+            <main className="relative flex-1 w-full overflow-hidden">
+              <AnimatePresence mode="wait">
+                {currentScene === 'BASE' ? (
+                  <BaseMap
+                    key="base"
+                    hasIncident={hasIncident}
+                    isResolved={isResolved}
+                    onSelectGreenhouse={navigateToGreenhouse}
+                    onOpenControlPanel={() => setIsControlPanelOpen(true)}
+                  />
+                ) : (
+                  <GreenhouseScene
+                    key="greenhouse"
+                    isResolved={isResolved}
+                    onActivateEmergencyCooling={handleActivateEmergencyCooling}
+                    onReturnToBase={navigateToBase}
+                    isCoolingActive={isCoolingActive}
+                    currentTemp={currentTemp}
+                    resources={resources}
+                  />
+                )}
+              </AnimatePresence>
+            </main>
+
+            {/* Panel de Control Desplegable (Únicamente 3 recursos) */}
+            <ControlPanelDrawer
+              isOpen={isControlPanelOpen}
+              onClose={() => setIsControlPanelOpen(false)}
+              resources={resources}
+              greenhouseStatus={isResolved || !hasIncident ? 'OPERATIVO' : 'ERROR'}
+              onNavigateToGreenhouse={navigateToGreenhouse}
             />
-          )}
-        </AnimatePresence>
-      </main>
 
-      {/* 3. Panel de Control Desplegable */}
-      <ControlPanelDrawer
-        isOpen={isControlPanelOpen}
-        onClose={() => setIsControlPanelOpen(false)}
-        resources={resources}
-        greenhouseStatus={isResolved || !hasIncident ? 'OPERATIVO' : 'ERROR'}
-        onNavigateToGreenhouse={navigateToGreenhouse}
-      />
-
-      {/* 4. Personaje: Segundo al Mando (Oficial de Operaciones) */}
-      <OfficerDialogue
-        isOpen={isOfficerOpen}
-        message={officerMessage}
-        badgeText={officerBadge}
-        actions={dialogueActions}
-        onClose={() => setIsOfficerOpen(false)}
-      />
+            {/* Segundo al Mando (Oficial de Operaciones) */}
+            <OfficerDialogue
+              isOpen={isOfficerOpen}
+              message={officerMessage}
+              badgeText={officerBadge}
+              actions={dialogueActions}
+              onClose={() => setIsOfficerOpen(false)}
+            />
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

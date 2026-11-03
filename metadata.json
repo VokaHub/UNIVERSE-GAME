@@ -1,5 +1,5 @@
 {
-  "name": "OUTPOST - Simulación Polo Sur Lunar",
+  "name": "UNIVERSE - Simulación Polo Sur Lunar",
   "description": "Maqueta interactiva de simulación espacial en el polo sur lunar. Administra la base, gestiona incidentes y supervisa los módulos vitales.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

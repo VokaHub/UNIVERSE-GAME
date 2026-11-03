@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'motion/react';
-import { Thermometer, ArrowLeft, Power, CheckCircle, AlertTriangle, Wind, Zap } from 'lucide-react';
-import { ASSET_IMAGES } from '../data/missionConfig';
+import { Thermometer, ArrowLeft, Power, CheckCircle, AlertTriangle, Wind, Zap, Droplets } from 'lucide-react';
+import { ASSET_IMAGES, ResourceState } from '../data/missionConfig';
 import { sfx } from '../utils/audio';
 
 interface GreenhouseSceneProps {
@@ -10,6 +10,7 @@ interface GreenhouseSceneProps {
   onReturnToBase: () => void;
   isCoolingActive: boolean;
   currentTemp: number;
+  resources: ResourceState;
 }
 
 export const GreenhouseScene: React.FC<GreenhouseSceneProps> = ({
@@ -18,6 +19,7 @@ export const GreenhouseScene: React.FC<GreenhouseSceneProps> = ({
   onReturnToBase,
   isCoolingActive,
   currentTemp,
+  resources,
 }) => {
   const handleActivate = () => {
     if (isResolved || isCoolingActive) return;
@@ -84,7 +86,7 @@ export const GreenhouseScene: React.FC<GreenhouseSceneProps> = ({
         </div>
       </div>
 
-      {/* 3. Panel Flotante de Control (Temperatura + Estado + Botón) */}
+      {/* 3. Panel Flotante de Control (Temperatura + Estado + Botón + Impacto en Recursos) */}
       <div className="relative z-20 max-w-md mx-auto w-full px-4 mb-20 sm:mb-8">
         <div className="bg-slate-900/95 border border-cyan-500/30 rounded-2xl p-4 sm:p-5 shadow-2xl backdrop-blur-xl text-white">
           {/* Fila 1: Lectura de Temperatura Grande */}
@@ -120,7 +122,7 @@ export const GreenhouseScene: React.FC<GreenhouseSceneProps> = ({
               </div>
             </div>
 
-            {/* Estado del sistema en etiqueta corta */}
+            {/* Estado del sistema */}
             <div className="text-right">
               <div className="text-[10px] font-mono font-bold text-slate-400 uppercase">
                 REFRIGERACIÓN
@@ -137,19 +139,38 @@ export const GreenhouseScene: React.FC<GreenhouseSceneProps> = ({
             </div>
           </div>
 
+          {/* Mini-monitor visual de los 3 recursos en tiempo real */}
+          <div className="my-3 py-2 px-3 rounded-xl bg-slate-950/60 border border-white/5 flex items-center justify-between text-xs font-mono">
+            <div className="flex items-center gap-1.5">
+              <Zap className="w-3.5 h-3.5 text-amber-400" />
+              <span className="text-slate-400">Energía:</span>
+              <span className="font-bold text-amber-400">{resources.energy}%</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Wind className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="text-slate-400">Oxígeno:</span>
+              <span className="font-bold text-cyan-400">{resources.oxygen}%</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Droplets className="w-3.5 h-3.5 text-blue-400" />
+              <span className="text-slate-400">Agua:</span>
+              <span className="font-bold text-blue-400">{resources.water}%</span>
+            </div>
+          </div>
+
           {/* Fila 2: Botón de Acción Principal */}
-          <div className="mt-4">
+          <div>
             {!isResolved && !isCoolingActive ? (
               <button
                 onClick={handleActivate}
-                className="w-full py-3.5 px-4 rounded-xl font-black text-sm tracking-wide text-slate-950 bg-gradient-to-r from-cyan-400 to-cyan-300 hover:from-cyan-300 hover:to-cyan-200 shadow-xl shadow-cyan-950/60 active:scale-[0.98] transition-all flex flex-col items-center justify-center gap-0.5 border border-white/20"
+                className="w-full py-3.5 px-4 rounded-xl font-black text-xs sm:text-sm tracking-wide text-slate-950 bg-gradient-to-r from-cyan-400 to-cyan-300 hover:from-cyan-300 hover:to-cyan-200 shadow-xl shadow-cyan-950/60 active:scale-[0.98] transition-all flex flex-col items-center justify-center gap-0.5 border border-white/20"
               >
                 <div className="flex items-center gap-2">
                   <Power className="w-4 h-4 text-slate-950" />
                   <span>ACTIVAR REFRIGERACIÓN DE EMERGENCIA</span>
                 </div>
-                <span className="text-[10px] font-mono font-bold text-slate-800 flex items-center gap-1">
-                  <Zap className="w-3 h-3 text-amber-700" /> Consumo: -5% Energía
+                <span className="text-[10px] font-mono font-bold text-slate-800">
+                  Consumo: -5% Energía · -3% Agua
                 </span>
               </button>
             ) : isCoolingActive ? (

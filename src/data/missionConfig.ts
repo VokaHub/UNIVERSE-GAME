@@ -3,17 +3,16 @@
  * @description Configuración narrativa, parámetros de simulación y diálogos del videojuego educativo OUTPOST.
  * 
  * NOTA TÉCNICA Y CIENTÍFICA:
- * Los valores de recursos (energía, oxígeno, agua, alimentos y temperatura) aquí expuestos
- * son FICTICIOS y han sido simplificados con fines lúdicos y pedagógicos para esta maqueta.
- * En una versión científica posterior, estos valores se vincularían con modelos de simulación ECLSS
- * (Environmental Control and Life Support System) y balances de masa/energía validados por NASA / ESA.
+ * Los valores de recursos (energía, oxígeno y agua) y temperatura aquí expuestos
+ * son FICTICIOS y exclusivamente demostrativos para esta maqueta interactiva.
+ * En una versión científica posterior, estos valores se sustituirán por modelos
+ * de simulación ECLSS y balances de masa/energía validados por NASA / ESA.
  */
 
 export interface ResourceState {
   energy: number; // Porcentaje (%)
   oxygen: number; // Porcentaje (%)
   water: number;  // Porcentaje (%)
-  food: number;   // Porcentaje (%)
 }
 
 export type ModuleStatus = 'OPERATIVO' | 'ERROR' | 'ADVERTENCIA';
@@ -22,28 +21,34 @@ export interface BaseModule {
   id: string;
   name: string;
   code: string;
-  description: string;
   status: ModuleStatus;
-  x: number; // Coordenada porcentual horizontal en el mapa de la base (0-100)
-  y: number; // Coordenada porcentual vertical en el mapa de la base (0-100)
 }
 
+export const WELCOME_CONFIG = {
+  teamName: 'UNIVERSE',
+  gameTitle: 'UNIVERSE',
+  subtitle: 'EVERY CHOICE HAS A COST',
+  missionTagline: '48 horas para mantener viva tu misión',
+  ctaButton: 'EMPEZAR A JUGAR',
+};
+
 export const MISSION_METADATA = {
-  name: 'OUTPOST',
+  name: 'UNIVERSE',
+  team: 'UNIVERSE',
   location: 'POLO SUR LUNAR',
-  sublocation: 'Borde del Cráter Shackleton (89.9° S, 0.0° E)',
+  sublocation: 'Cráter Shackleton (89.9° S, 0.0° E)',
   commanderRole: 'Comandante de la Misión',
-  officerRole: 'Segundo al Mando / Oficial de Operaciones',
+  officerRole: 'Segundo al Mando',
   officerName: 'Oficial Elena Cruz',
   totalHours: 48,
   initialSimTime: '00:00 / 48:00',
   activeSimTime: '01:15 / 48:00',
   objective: 'Mantener la base y la tripulación operativas durante las 48 horas de la misión.',
-  disclaimer: 'Valores y parámetros ficticios para maqueta operativa interactiva. No constituyen datos científicos oficiales de NASA.',
+  disclaimer: 'Valores ficticios para maqueta operativa interactiva. No constituyen datos científicos oficiales de NASA.',
 };
 
 /**
- * Recursos multimedia provistos por el usuario.
+ * Recursos multimedia (imágenes limpias de la base, interior e interlocutor).
  */
 export const ASSET_IMAGES = {
   lunarBase: 'https://res.cloudinary.com/uelrhbi7/image/upload/v1793671478/base-lunar.jpg',
@@ -53,102 +58,83 @@ export const ASSET_IMAGES = {
 };
 
 /**
- * Recursos iniciales de la base.
- * VALORES FICTICIOS PARA LA DEMOSTRACIÓN.
+ * RECURSOS INICIALES (ÚNICAMENTE TRES RECURSOS: ENERGÍA, OXÍGENO, AGUA).
+ * VALORES FICTICIOS Y EXCLUSIVAMENTE DEMOSTRATIVOS.
  */
 export const INITIAL_RESOURCES: ResourceState = {
-  energy: 78, // % inicial
-  oxygen: 96, // % nominal
-  water: 85,  // % nominal
-  food: 72,   // % nominal
+  energy: 78, // %
+  oxygen: 96, // %
+  water: 85,  // %
 };
 
 /**
- * Consecuencias del incidente de refrigeración de emergencia:
- * Al activar la refrigeración de emergencia, el consumo adicional reduce la energía de 78% a 73%.
+ * CONSECUENCIAS DE LA DECISIÓN DE REFRIGERACIÓN DE EMERGENCIA:
+ * Al activar la refrigeración de emergencia:
+ * - La energía disminuye de 78 % a 73 % (-5 %).
+ * - El agua disminuye de 85 % a 82 % (-3 % por consumo del circuito térmico).
+ * - El oxígeno permanece en 96 %.
  */
 export const RESOLVED_RESOURCES: ResourceState = {
-  energy: 73, // % posterior a la resolución (-5% por sobrecarga de refrigeración de emergencia)
-  oxygen: 96,
-  water: 85,
-  food: 72,
+  energy: 73, // %
+  oxygen: 96, // % (permanece igual)
+  water: 82,  // %
 };
 
 /**
- * Parámetros del incidente térmico en el invernadero.
+ * Parámetros del único incidente térmico en el invernadero.
  */
 export const INCIDENT_CONFIG = {
   id: 'INC-AGRO-702',
   moduleName: 'INVERNADERO',
-  moduleCode: 'MÓDULO AGRO-01',
+  moduleCode: 'AGRO-01',
   initialTemp: 34,    // °C al producirse el fallo
   targetTemp: 25,     // °C tras estabilización con sistema de emergencia
   nominalRange: { min: 20, max: 26 }, // Rango seguro para cultivos lunares (°C)
   emergencyCoolingDurationMs: 2400,   // Duración de la animación de enfriamiento progresivo
-  delayBeforeIncidentTriggerMs: 1500, // Retardo al arrancar antes de que el oficial informe
+  delayBeforeIncidentTriggerMs: 1600, // Retardo al arrancar la base antes del aviso del segundo al mando
   
-  // Textos y diálogos simplificados del segundo al mando (máximo 2 frases directas y naturales)
+  // Diálogos breves (máximo dos frases cortas y directas en español)
   dialogues: {
-    // Alarma inicial en la pantalla principal
     alert: '¡Comandante, el invernadero se está sobrecalentando! Tenemos que activar la refrigeración de emergencia.',
-    // Instrucción para proceder
     guidance: 'Revise el panel de control o entre directamente al módulo para intervenir.',
-    // Dentro del invernadero
     greenhouseBriefing: 'El compresor principal falló y alcanzamos los 34 °C. ¡Active el sistema de emergencia para salvar los cultivos!',
-    // Tras activar la refrigeración de emergencia
-    stabilized: '¡Temperatura estabilizada a 25 °C! La refrigeración extra consumió energía y la reserva bajó al 73%.',
-    // Al regresar a la base panorámica
-    incidentResolvedBase: '¡Incidente resuelto, comandante! Todos los sistemas de la base vuelven a estar operativos.',
+    stabilized: '¡Temperatura estabilizada a 25 °C! La refrigeración extra redujo la energía al 73 % y el agua al 82 %.',
+    incidentResolvedBase: '¡Incidente resuelto, comandante! Todos los sistemas de la base continúan operativos.',
   },
 };
 
 /**
- * Módulos de la base lunar para representación en el mapa y panel de control.
+ * Módulos y sistemas de la base representados en el panel de control.
  */
-export const OUTPOST_MODULES: BaseModule[] = [
+export const BASE_SYSTEMS: BaseModule[] = [
   {
     id: 'greenhouse',
     name: 'Invernadero Biológico',
     code: 'AGRO-01',
-    description: 'Producción de alimentos hidropónicos y reciclaje biológico de CO2.',
-    status: 'ERROR', // Cambia dinámicamente con el estado del incidente
-    x: 63, // Ubicado visualmente sobre el domo agrícola
-    y: 52,
-  },
-  {
-    id: 'habitat',
-    name: 'Módulo Habitacional',
-    code: 'HAB-01',
-    description: 'Alojamiento para 6 tripulantes, camarotes y áreas comunes.',
-    status: 'OPERATIVO',
-    x: 44,
-    y: 65,
+    status: 'ERROR', // Cambia dinámicamente a OPERATIVO al resolverse
   },
   {
     id: 'power',
-    name: 'Planta de Energía Solar',
+    name: 'Red Eléctrica',
     code: 'PWR-ARRAY',
-    description: 'Generación fotovoltaica y celdas regenerativas de combustible.',
     status: 'OPERATIVO',
-    x: 28,
-    y: 42,
   },
   {
-    id: 'comm',
-    name: 'Antena de Espacio Profundo',
-    code: 'COMM-DSN',
-    description: 'Enlace bidireccional con el Centro de Control de Misión en la Tierra.',
+    id: 'oxygen',
+    name: 'Soporte de Oxígeno',
+    code: 'ECLSS-O2',
     status: 'OPERATIVO',
-    x: 78,
-    y: 38,
   },
   {
-    id: 'life_support',
-    name: 'Soporte Vital Central',
-    code: 'ECLSS-01',
-    description: 'Regeneración atmosférica, scrubbers de CO2 y purificación hídrica.',
+    id: 'water',
+    name: 'Circuito Hídrico',
+    code: 'H2O-LOOP',
     status: 'OPERATIVO',
-    x: 50,
-    y: 48,
+  },
+  {
+    id: 'habitat',
+    name: 'Módulo Hábitat',
+    code: 'HAB-01',
+    status: 'OPERATIVO',
   },
 ];

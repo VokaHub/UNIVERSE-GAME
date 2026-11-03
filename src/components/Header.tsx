@@ -1,5 +1,5 @@
 import React from 'react';
-import { Volume2, VolumeX, RotateCcw, Sliders, AlertCircle, CheckCircle } from 'lucide-react';
+import { Volume2, VolumeX, RotateCcw, Sliders, AlertCircle, CheckCircle, Home } from 'lucide-react';
 import { MISSION_METADATA } from '../data/missionConfig';
 import { sfx } from '../utils/audio';
 
@@ -8,7 +8,7 @@ interface HeaderProps {
   hasIncident: boolean;
   isResolved: boolean;
   onOpenControlPanel: () => void;
-  onResetDemo: () => void;
+  onResetToWelcome: () => void;
   isMuted: boolean;
   onToggleMute: () => void;
 }
@@ -18,12 +18,12 @@ export const Header: React.FC<HeaderProps> = ({
   hasIncident,
   isResolved,
   onOpenControlPanel,
-  onResetDemo,
+  onResetToWelcome,
   isMuted,
   onToggleMute,
 }) => {
   return (
-    <header className="relative z-30 flex items-center justify-between px-3 py-2 sm:px-6 sm:py-2.5 bg-slate-950/75 backdrop-blur-md border-b border-white/10 text-white select-none">
+    <header className="relative z-30 flex items-center justify-between px-3 py-2 sm:px-6 sm:py-2.5 bg-slate-950/80 backdrop-blur-md border-b border-white/10 text-white select-none">
       {/* Título del juego & Tag */}
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
@@ -61,7 +61,7 @@ export const Header: React.FC<HeaderProps> = ({
         )}
       </div>
 
-      {/* Controles: Audio, Reset y Panel */}
+      {/* Controles: Audio, Reiniciar (Inicio) y Panel */}
       <div className="flex items-center gap-2">
         <button
           onClick={() => {
@@ -74,12 +74,13 @@ export const Header: React.FC<HeaderProps> = ({
           {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
         </button>
 
+        {/* Botón para reiniciar toda la demostración y volver a bienvenida */}
         <button
           onClick={() => {
             sfx.click();
-            onResetDemo();
+            onResetToWelcome();
           }}
-          title="Reiniciar simulación"
+          title="Reiniciar y volver a la pantalla de bienvenida"
           className="p-1.5 sm:px-2.5 sm:py-1.5 rounded-lg bg-slate-900/80 hover:bg-slate-800 text-slate-300 border border-white/10 text-xs font-medium transition-colors flex items-center gap-1"
         >
           <RotateCcw className="w-4 h-4" />
