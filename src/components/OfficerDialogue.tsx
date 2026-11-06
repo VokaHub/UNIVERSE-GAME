@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ChevronRight, X } from 'lucide-react';
-import { ASSET_IMAGES, MISSION_METADATA } from '../data/missionConfig';
+import { X, Radio, Play } from 'lucide-react';
+import { ASSET_IMAGES } from '../data/missionConfig';
 import { sfx } from '../utils/audio';
 
 export interface DialogueAction {
@@ -26,95 +26,130 @@ export const OfficerDialogue: React.FC<OfficerDialogueProps> = ({
   message,
   actions = [],
   onClose,
-  badgeText = 'SEGUNDO AL MANDO',
+  badgeText = 'ASISTENTE DEL COMANDANTE',
 }) => {
+  const isEmergency = badgeText === 'EMERGENCIA' || badgeText === 'ERROR';
+
   return (
     <AnimatePresence>
       {isOpen && (
-        <motion.div
-          initial={{ opacity: 0, y: 35, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 25, scale: 0.95 }}
-          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          className="fixed bottom-3 left-3 right-3 sm:left-6 sm:right-auto sm:max-w-md z-40 pointer-events-auto"
-        >
-          <div className="bg-slate-900/95 border border-cyan-500/40 rounded-2xl p-3.5 sm:p-4 shadow-2xl backdrop-blur-xl text-slate-100 ring-1 ring-white/10">
-            {/* Cabecera compacta */}
-            <div className="flex items-center justify-between pb-2 mb-2 border-b border-white/10">
-              <div className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-                <span className="text-[11px] font-mono font-bold tracking-wider text-cyan-300 uppercase">
-                  {badgeText}
+        <div className="fixed inset-x-0 bottom-0 z-40 pointer-events-none select-none flex flex-col justify-end pb-2 sm:pb-4">
+          <div className="relative w-full max-w-7xl mx-auto px-3 sm:px-6 flex flex-col sm:flex-row items-end justify-start gap-2 sm:gap-6">
+            
+            {/* 1. PERSONAJE NPC DE CUERPO PRESENTE (Silueta Transparente auténtica emergiendo desde la izquierda) */}
+            <motion.div
+              initial={{ y: 160, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 160, opacity: 0 }}
+              transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+              className="relative shrink-0 pointer-events-none z-10 w-[180px] sm:w-[290px] md:w-[350px] lg:w-[400px] h-[34vh] sm:h-[54vh] md:h-[62vh] max-h-[620px]"
+            >
+              <img
+                src={ASSET_IMAGES.officer}
+                alt="ASISTENTE DEL COMANDANTE"
+                referrerPolicy="no-referrer"
+                className="absolute bottom-0 pointer-events-none select-none drop-shadow-[0_15px_35px_rgba(0,0,0,0.9)] max-w-none"
+                style={{
+                  height: '135%',
+                  width: 'auto',
+                  left: '50%',
+                  transform: 'translateX(-52.2%) translateY(11.5%)',
+                }}
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  target.style.display = 'none';
+                }}
+              />
+            </motion.div>
+
+            {/* 2. CAJA DE DIÁLOGO ESTILO VIDEOJUEGO (Inspirada en RPG / Aventura Espacial) */}
+            <motion.div
+              initial={{ y: 40, opacity: 0, scale: 0.97 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 30, opacity: 0, scale: 0.97 }}
+              transition={{ duration: 0.35, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
+              className="pointer-events-auto z-20 mb-2 sm:mb-6 w-full sm:max-w-xl md:max-w-2xl lg:max-w-3xl"
+            >
+              {/* Placa superior estilo cartela de juego con el título del personaje */}
+              <div className="relative inline-flex items-center gap-2 px-4 py-1.5 mb-1.5 rounded-t-xl bg-slate-950/95 border-t-2 border-x-2 border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.35)] backdrop-blur-md">
+                <span className="flex items-center justify-center w-5 h-5 rounded bg-cyan-950 border border-cyan-400/80 text-cyan-300">
+                  <Radio className="w-3 h-3 animate-pulse" />
                 </span>
+                <span className="text-xs sm:text-sm font-black tracking-widest text-cyan-300 font-mono uppercase">
+                  ASISTENTE DEL COMANDANTE
+                </span>
+                {isEmergency && (
+                  <span className="ml-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-rose-600/90 text-white animate-pulse border border-rose-400">
+                    ¡ALERTA!
+                  </span>
+                )}
+                {badgeText && badgeText !== 'ASISTENTE DEL COMANDANTE' && !isEmergency && (
+                  <span className="ml-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-900/60 text-cyan-200 border border-cyan-400/40">
+                    {badgeText}
+                  </span>
+                )}
               </div>
 
-              {onClose && (
-                <button
-                  onClick={() => {
-                    sfx.click();
-                    onClose();
-                  }}
-                  className="p-1 text-slate-400 hover:text-white rounded-md hover:bg-slate-800 transition-colors"
-                  aria-label="Cerrar diálogo"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-
-            {/* Avatar y Mensaje directo */}
-            <div className="flex items-center gap-3">
-              <div className="relative shrink-0">
-                <div className="w-14 h-14 rounded-xl overflow-hidden border-2 border-cyan-400/50 bg-slate-800 shadow-md">
-                  <img
-                    src={ASSET_IMAGES.officer}
-                    alt={MISSION_METADATA.officerName}
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover object-top"
-                    onError={(e) => {
-                      const target = e.currentTarget;
-                      target.style.display = 'none';
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <p className="text-xs sm:text-sm text-slate-100 font-semibold leading-snug">
-                  {message}
-                </p>
-              </div>
-            </div>
-
-            {/* Acciones Rápidas */}
-            {actions.length > 0 && (
-              <div className="mt-3 pt-2.5 border-t border-white/10 flex flex-wrap gap-2 justify-end">
-                {actions.map((action, idx) => {
-                  let btnStyle = 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-white/10';
-                  if (action.danger) {
-                    btnStyle = 'bg-rose-600 hover:bg-rose-500 text-white font-bold shadow-md shadow-rose-950/40';
-                  } else if (action.primary) {
-                    btnStyle = 'bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black shadow-md shadow-cyan-950/40';
-                  }
-
-                  return (
+              {/* Contenedor principal de diálogo con estética Sci-Fi */}
+              <div className="relative bg-slate-950/95 border-2 border-cyan-400/70 rounded-2xl rounded-tl-none p-4 sm:p-5 shadow-[0_12px_45px_rgba(0,0,0,0.85)] backdrop-blur-2xl text-slate-100 ring-1 ring-cyan-500/30">
+                
+                {/* Acento luminoso en esquina superior derecha */}
+                <div className="absolute top-2 right-2 flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-cyan-400 animate-ping opacity-60" />
+                  {onClose && (
                     <button
-                      key={idx}
                       onClick={() => {
                         sfx.click();
-                        action.onClick();
+                        onClose();
                       }}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-all active:scale-95 ${btnStyle}`}
+                      className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors cursor-pointer"
+                      aria-label="Cerrar diálogo"
                     >
-                      {action.icon || <ChevronRight className="w-3.5 h-3.5" />}
-                      <span>{action.label}</span>
+                      <X className="w-4 h-4" />
                     </button>
-                  );
-                })}
+                  )}
+                </div>
+
+                {/* Texto del diálogo (Prose limpio, grande y adaptado para niños de 7 a 12 años) */}
+                <div className="pr-6">
+                  <p className="text-sm sm:text-base md:text-lg text-slate-100 font-medium leading-relaxed font-sans select-text">
+                    «{message}»
+                  </p>
+                </div>
+
+                {/* Botones de acción táctiles interactivos */}
+                {actions.length > 0 && (
+                  <div className="mt-4 pt-3 border-t border-cyan-500/20 flex flex-wrap items-center justify-end gap-2.5">
+                    {actions.map((action, idx) => {
+                      let btnStyle = 'bg-slate-900 hover:bg-slate-800 text-slate-200 border border-cyan-500/40';
+                      if (action.danger) {
+                        btnStyle = 'bg-rose-600 hover:bg-rose-500 text-white font-bold shadow-lg shadow-rose-950/50 border border-rose-400';
+                      } else if (action.primary) {
+                        btnStyle = 'bg-gradient-to-r from-cyan-400 via-sky-400 to-cyan-300 hover:from-cyan-300 hover:to-sky-200 text-slate-950 font-black shadow-[0_0_20px_rgba(6,182,212,0.4)] border border-white/60';
+                      }
+
+                      return (
+                        <button
+                          key={idx}
+                          onClick={() => {
+                            sfx.click();
+                            action.onClick();
+                          }}
+                          className={`flex items-center gap-2 px-4 py-2 sm:py-2.5 text-xs sm:text-sm rounded-xl transition-all active:scale-95 cursor-pointer font-bold ${btnStyle}`}
+                        >
+                          <span>{action.label}</span>
+                          {action.icon || <Play className="w-3.5 h-3.5 fill-current" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
               </div>
-            )}
+            </motion.div>
+
           </div>
-        </motion.div>
+        </div>
       )}
     </AnimatePresence>
   );

@@ -29,7 +29,7 @@ export const WELCOME_CONFIG = {
   gameTitle: 'OUTPOST',
   subtitle: 'EVERY CHOICE HAS A COST',
   missionTagline: '48 horas para mantener viva tu misión',
-  ctaButton: 'EMPEZAR A JUGAR',
+  ctaButton: 'EMPEZAR MISIÓN',
 };
 
 export const MISSION_METADATA = {
@@ -38,13 +38,23 @@ export const MISSION_METADATA = {
   location: 'POLO SUR LUNAR',
   sublocation: 'Cráter Shackleton (89.9° S, 0.0° E)',
   commanderRole: 'Comandante de la Misión',
-  officerRole: 'Segundo al Mando',
-  officerName: 'Oficial Elena Cruz',
+  officerRole: 'Asistente del Comandante',
+  officerName: 'ASISTENTE DEL COMANDANTE',
   totalHours: 48,
   initialSimTime: '00:00 / 48:00',
   activeSimTime: '01:15 / 48:00',
-  objective: 'Mantener la base y la tripulación operativas durante las 48 horas de la misión.',
+  objective: 'Mantener la base lunar y sus sistemas funcionando durante la misión.',
   disclaimer: 'Valores ficticios para maqueta operativa interactiva. No constituyen datos científicos oficiales de NASA.',
+};
+
+/**
+ * Temporizador centralizado de la misión lunar:
+ * 7 días de duración, cada día dura exactamente 60 segundos reales (420 segundos en total).
+ */
+export const TIMER_CONFIG = {
+  totalDays: 7,
+  secondsPerDay: 60,
+  totalMissionSeconds: 420, // 7 * 60 = 420 segundos
 };
 
 /**
@@ -54,7 +64,7 @@ export const ASSET_IMAGES = {
   lunarBase: 'https://res.cloudinary.com/uelrhbi7/image/upload/v1793671478/base-lunar.jpg',
   greenhouse: 'https://res.cloudinary.com/uelrhbi7/image/upload/v1793671511/invernadero.jpg',
   controlRoom: 'https://res.cloudinary.com/uelrhbi7/image/upload/v1793671449/sala-control.jpg',
-  officer: 'https://res.cloudinary.com/uelrhbi7/image/upload/v1793671418/segundo-al-mando.png',
+  officer: 'https://res.cloudinary.com/uelrhbi7/image/upload/v1793740951/segundo-al-mando.png',
 };
 
 /**
@@ -93,13 +103,13 @@ export const INCIDENT_CONFIG = {
   emergencyCoolingDurationMs: 2400,   // Duración de la animación de enfriamiento progresivo
   delayBeforeIncidentTriggerMs: 1600, // Retardo al arrancar la base antes del aviso del segundo al mando
   
-  // Diálogos breves (máximo dos frases cortas y directas en español)
+  // Diálogos breves y claros adaptados a niños de 7 a 12 años
   dialogues: {
-    alert: '¡Comandante, el invernadero se está sobrecalentando! Tenemos que activar la refrigeración de emergencia.',
-    guidance: 'Revise el panel de control o entre directamente al módulo para intervenir.',
-    greenhouseBriefing: 'El compresor principal falló y alcanzamos los 34 °C. ¡Active el sistema de emergencia para salvar los cultivos!',
-    stabilized: '¡Temperatura estabilizada a 25 °C! La refrigeración extra redujo la energía al 73 % y el agua al 82 %.',
-    incidentResolvedBase: '¡Incidente resuelto, comandante! Todos los sistemas de la base continúan operativos.',
+    alert: '¡Comandante, el invernadero tiene demasiado calor! Tenemos que activar la refrigeración de emergencia para proteger las plantas.',
+    guidance: 'Consulta la tableta de control o entra al invernadero desde el mapa para intervenir.',
+    greenhouseBriefing: 'El sistema principal falló y la temperatura subió a 34 °C. ¡Presiona activar refrigeración para salvar los cultivos!',
+    stabilized: '¡Excelente trabajo! La temperatura volvió a 25 °C. Usamos un poco de energía y agua, pero salvamos las plantas.',
+    incidentResolvedBase: '¡Todo en orden, comandante! Los módulos de la base lunar están funcionando correctamente.',
   },
 };
 

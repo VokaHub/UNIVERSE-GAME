@@ -4,7 +4,7 @@
  * Manejo de pantalla de bienvenida 3D, mapa base lunar, invernadero, diálogos del oficial y recursos.
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { AnimatePresence } from 'motion/react';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { Header } from './components/Header';
@@ -12,11 +12,13 @@ import { BaseMap } from './components/BaseMap';
 import { GreenhouseScene } from './components/GreenhouseScene';
 import { ControlPanelDrawer } from './components/ControlPanelDrawer';
 import { OfficerDialogue, DialogueAction } from './components/OfficerDialogue';
+import { MissionResultsModal } from './components/MissionResultsModal';
 import {
   MISSION_METADATA,
   INITIAL_RESOURCES,
   RESOLVED_RESOURCES,
   INCIDENT_CONFIG,
+  TIMER_CONFIG,
   ResourceState,
 } from './data/missionConfig';
 import { sfx } from './utils/audio';
@@ -36,16 +38,22 @@ export default function App() {
   // Únicamente tres recursos principales (Energía, Oxígeno, Agua)
   const [resources, setResources] = useState<ResourceState>(INITIAL_RESOURCES);
 
-  // Reloj de tiempo simulado
-  const [simTime, setSimTime] = useState<string>(MISSION_METADATA.initialSimTime);
+  // Temporizador central de 7 días (420 segundos reales, 60s por día)
+  const [secondsRemaining, setSecondsRemaining] = useState<number>(TIMER_CONFIG.totalMissionSeconds);
+  const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
+  const [isResultsOpen, setIsResultsOpen] = useState<boolean>(false);
+
+  // Cálculo del día lunar activo (1 al 7)
+  const elapsedSeconds = TIMER_CONFIG.totalMissionSeconds - secondsRemaining;
+  const currentDay = Math.min(TIMER_CONFIG.totalDays, Math.floor(elapsedSeconds / TIMER_CONFIG.secondsPerDay) + 1);
 
   // Panel de control desplegable
   const [isControlPanelOpen, setIsControlPanelOpen] = useState<boolean>(false);
 
-  // Diálogo del Oficial
+  // Diálogo del Asistente del Comandante
   const [isOfficerOpen, setIsOfficerOpen] = useState<boolean>(false);
   const [officerMessage, setOfficerMessage] = useState<string>('');
-  const [officerBadge, setOfficerBadge] = useState<string>('SEGUNDO AL MANDO');
+  const [officerBadge, setOfficerBadge] = useState<string>('ASISTENTE DEL COMANDANTE');
   const [dialogueActions, setDialogueActions] = useState<DialogueAction[]>([]);
 
   // Toggle de sonido
@@ -56,13 +64,45 @@ export default function App() {
   const incidentTimerRef = useRef<number | null>(null);
 
   /**
-   * 1. Al pulsar EMPEZAR A JUGAR en la pantalla de bienvenida
+   * Temporizador central ininterrumpido:
+   * No se reinicia ni se pausa al navegar, abrir la tableta o dialogar con el asistente.
+   * Al llegar a 0 (420 segundos = 7 días), muestra el informe final de resultados.
+   */
+  useEffect(() => {
+    let interval: number | null = null;
+
+    if (isTimerRunning && secondsRemaining > 0) {
+      interval = window.setInterval(() => {
+        setSecondsRemaining((prev) => {
+          if (prev <= 1) {
+            setIsTimerRunning(false);
+            setIsResultsOpen(true);
+            sfx.success();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    return () => {
+      if (interval) {
+        window.clearInterval(interval);
+      }
+    };
+  }, [isTimerRunning, secondsRemaining]);
+
+  /**
+   * 1. Al pulsar EMPEZAR MISIÓN en la pantalla de bienvenida:
+   * Arranca el temporizador central de 7 días (420 segundos).
    */
   const handleStartGame = () => {
     setCurrentScene('BASE');
-    setSimTime(MISSION_METADATA.initialSimTime);
+    setSecondsRemaining(TIMER_CONFIG.totalMissionSeconds);
+    setIsTimerRunning(true);
+    setIsResultsOpen(false);
 
-    // Tras unos instantes, el segundo al mando comunica la emergencia térmica
+    // Tras unos instantes, el asistente comunica la emergencia térmica
     if (incidentTimerRef.current) {
       window.clearTimeout(incidentTimerRef.current);
     }
@@ -76,24 +116,16 @@ export default function App() {
    */
   const triggerIncident = () => {
     setHasIncident(true);
-    setSimTime('00:15 / 48:00');
     sfx.alert();
 
     setOfficerBadge('EMERGENCIA');
     setOfficerMessage(INCIDENT_CONFIG.dialogues.alert);
     setDialogueActions([
       {
-        label: 'PANEL DE CONTROL',
-        onClick: () => {
-          setIsOfficerOpen(false);
-          setIsControlPanelOpen(true);
-        },
-      },
-      {
-        label: 'IR AL INVERNADERO',
+        label: '¡ENTENDIDO!',
         primary: true,
         onClick: () => {
-          navigateToGreenhouse();
+          setIsOfficerOpen(false);
         },
       },
     ]);
@@ -141,14 +173,8 @@ export default function App() {
         setOfficerMessage(INCIDENT_CONFIG.dialogues.incidentResolvedBase);
         setDialogueActions([
           {
-            label: 'VER PANEL',
-            onClick: () => {
-              setIsOfficerOpen(false);
-              setIsControlPanelOpen(true);
-            },
-          },
-          {
-            label: 'CONTINUAR',
+            label: 'CONTINUAR MISIÓN',
+            primary: true,
             onClick: () => setIsOfficerOpen(false),
           },
         ]);
@@ -214,7 +240,6 @@ export default function App() {
         setIsCoolingActive(false);
         setIsResolved(true);
         setResources(RESOLVED_RESOURCES);
-        setSimTime('01:20 / 48:00');
         sfx.success();
 
         // Diálogo de confirmación del oficial (máximo dos frases)
@@ -250,13 +275,16 @@ export default function App() {
       incidentTimerRef.current = null;
     }
 
+    setIsTimerRunning(false);
+    setSecondsRemaining(TIMER_CONFIG.totalMissionSeconds);
+    setIsResultsOpen(false);
+
     setCurrentScene('WELCOME');
     setHasIncident(false);
     setIsResolved(false);
     setIsCoolingActive(false);
     setCurrentTemp(INCIDENT_CONFIG.initialTemp);
     setResources(INITIAL_RESOURCES);
-    setSimTime(MISSION_METADATA.initialSimTime);
     setIsControlPanelOpen(false);
     setIsOfficerOpen(false);
   };
@@ -274,19 +302,26 @@ export default function App() {
           <WelcomeScreen key="welcome" onStartGame={handleStartGame} />
         ) : (
           <div key="game" className="relative w-full h-full flex flex-col">
-            {/* Cabecera del Juego */}
+            {/* Cabecera del Juego con Reloj Central de 7 Días (420s) */}
             <Header
-              simTime={simTime}
+              currentDay={currentDay}
+              totalDays={TIMER_CONFIG.totalDays}
+              secondsRemaining={secondsRemaining}
               hasIncident={hasIncident}
               isResolved={isResolved}
-              onOpenControlPanel={() => setIsControlPanelOpen(true)}
               onResetToWelcome={handleResetToWelcome}
               isMuted={isMuted}
               onToggleMute={handleToggleMute}
             />
 
-            {/* Escenario Activo */}
-            <main className="relative flex-1 w-full overflow-hidden">
+            {/* Escenario Activo (con atenuación y desenfoque cinemático al hablar el asistente, abrir la tableta o informe final) */}
+            <main
+              className={`relative flex-1 w-full overflow-hidden transition-all duration-500 ease-out ${
+                isControlPanelOpen || isOfficerOpen || isResultsOpen
+                  ? 'filter blur-[5px] brightness-85 scale-[1.01] pointer-events-none'
+                  : 'filter blur-0 brightness-100 scale-100'
+              }`}
+            >
               <AnimatePresence mode="wait">
                 {currentScene === 'BASE' ? (
                   <BaseMap
@@ -310,22 +345,31 @@ export default function App() {
               </AnimatePresence>
             </main>
 
-            {/* Panel de Control Desplegable (Únicamente 3 recursos) */}
+            {/* Tableta de Control de Misión (Supervisión de recursos y sistemas) */}
             <ControlPanelDrawer
               isOpen={isControlPanelOpen}
               onClose={() => setIsControlPanelOpen(false)}
               resources={resources}
               greenhouseStatus={isResolved || !hasIncident ? 'OPERATIVO' : 'ERROR'}
-              onNavigateToGreenhouse={navigateToGreenhouse}
             />
 
-            {/* Segundo al Mando (Oficial de Operaciones) */}
+            {/* Asistente del Comandante (NPC de Aventura Espacial) */}
             <OfficerDialogue
               isOpen={isOfficerOpen}
               message={officerMessage}
               badgeText={officerBadge}
               actions={dialogueActions}
               onClose={() => setIsOfficerOpen(false)}
+            />
+
+            {/* Informe Final y Resultados de la Misión (al completar los 7 días lunares) */}
+            <MissionResultsModal
+              isOpen={isResultsOpen}
+              onClose={() => setIsResultsOpen(false)}
+              onRestart={handleResetToWelcome}
+              resources={resources}
+              isResolved={isResolved}
+              totalDays={TIMER_CONFIG.totalDays}
             />
           </div>
         )}
